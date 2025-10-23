@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useEncryption } from "./useEncryption";
 import { toHex } from "@mysten/sui/utils";
+import { useGalleryClient } from "./useGalleryClient";
+import { StorageInfo } from "@/app/api/upload/route";
 
 export function useFileUpload(uploadUrl: string, encryptionConfig: { keyServerIds: string[], packageId: string }) {
     const [file, setFile] = useState<File | null>(null);
@@ -8,6 +10,8 @@ export function useFileUpload(uploadUrl: string, encryptionConfig: { keyServerId
     const [uploadProgress, setUploadProgress] = useState<number>(0);
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [fileType, setFileType] = useState<string | undefined>(undefined);
+    const galleryClient = useGalleryClient();
 
     const { encryptFile, error: encryptionError } = useEncryption(encryptionConfig.keyServerIds, encryptionConfig.packageId);
 
@@ -36,6 +40,7 @@ export function useFileUpload(uploadUrl: string, encryptionConfig: { keyServerId
             generateThumbnail(selectedFile);
         }
         setFile(selectedFile);
+        setFileType(selectedFile?.type)
         setError(null);
     };
 
@@ -123,8 +128,21 @@ export function useFileUpload(uploadUrl: string, encryptionConfig: { keyServerId
                 console.error(response.statusText);
             }
 
-            console.log(await response.json())
+            const data = await response.json();
 
+            if (!data.ok) throw new Error(data.message);
+
+            const stroageInfo = data.storageInfo as StorageInfo[];
+
+            if (!stroageInfo || stroageInfo.length === 0) throw new Error("Endpoint did not return storageInfo");
+
+            await galleryClient.addImage({
+                blob: stroageInfo[0].blobId,
+                end_epoch: parseInt(stroageInfo[0].endEpoch),
+                thumbnail: stroageInfo[1].blobId,
+                type: fileType!,
+            });
+            
             setUploadProgress(100);
         } catch (err) {
             console.error(err)
