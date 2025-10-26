@@ -2,9 +2,7 @@ import { addToGallery, fetchDynamicFields, getGallery, newGallery } from "@/lib/
 import { DataValue } from "@/lib/types";
 import { useCurrentAccount, useSignTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { useEffect, useRef, useState } from "react";
-import { useEncryption } from "./useEncryption";
-import { fromBase64 } from "@mysten/sui/utils";
+import { useRef, useState } from "react";
 
 
 export function useGalleryClient() {
@@ -14,7 +12,6 @@ export function useGalleryClient() {
 
     const [gallery, setGallery] = useState<string | null>(null);
     const [images, setImages] = useState<DataValue[] | null>(null);
-    const hasRunRef = useRef<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     // check if user has gallery else get one
     async function init() {
@@ -37,14 +34,14 @@ export function useGalleryClient() {
                 }
             }
         } catch (e) {
-            console.error(e)
+            console.log(e)
             setError((e as Error).message)
         }
     };
 
 
 
-    async function getImages() {
+    async function fetchThumbnails() {
         try {
             if (!gallery) throw new Error("Gallery asset not Found");
             const data = await fetchDynamicFields({ id: gallery })
@@ -54,7 +51,7 @@ export function useGalleryClient() {
 
             if (fetchedImages.length === 0) throw new Error("Image fetch failed");
 
-            setImages(fetchedImages);
+            return fetchedImages;
         } catch (e) {
             console.error(e);
             setError((e as Error).message);
@@ -100,5 +97,5 @@ export function useGalleryClient() {
 
     }
 
-    return { init, gallery, images, addImage, getImages };
+    return { init, gallery, images, addImage, fetchThumbnails };
 }

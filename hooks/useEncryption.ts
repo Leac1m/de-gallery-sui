@@ -1,9 +1,12 @@
-import AppConfig from "@/config";
+import AppConfig, { getAggregatorUrl } from "@/config";
 import { seal_approve } from "@/lib/smc";
 import { useCurrentAccount, useSignPersonalMessage, useSuiClient } from "@mysten/dapp-kit";
 import { SealClient, SessionKey } from "@mysten/seal";
 import { fromBase64, toBase64 } from "@mysten/sui/utils";
 import { useEffect, useState } from "react";
+import pLimit from "p-limit";
+import { DataValue } from "@/lib/types";
+
 
 export function useEncryption() {
     const [sealClient, setSealClient] = useState<SealClient | null>(null);
@@ -12,6 +15,7 @@ export function useEncryption() {
     const [error, setError] = useState<string | null>(null);
     const suiClient = useSuiClient();
     const currentAccount = useCurrentAccount();
+    const limit = pLimit(4);
 
     async function init(gallery_id: string) {
         await encryptInit();
@@ -98,26 +102,36 @@ export function useEncryption() {
         return url
     }
 
-    async function decrypt(gallery_id: string | null) {
+    async function decrypt(gallery_id: string, data: DataValue) {
         try {
             // get sui metadata
             if (!gallery_id) throw Error("Gallery Id not found");
             // fetch walrus blob
-            const url = 'https://aggregator.walrus-testnet.walrus.space/v1/blobs/r4FqrpRSfwCSQD-1OWx79iEqtGkjS6kgSM84gv0doj0';
-            const options = { method: 'GET' };
+
+            // const url = `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${r4FqrpRSfwCSQD-1OWx79iEqtGkjS6kgSM84gv0doj0}`;
+
+            const url = `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${data.thumbnail_blob}`;
 
             const res = await fetch(url);
             if (!res.ok) throw new Error(`download failed: ${res.status} ${res.statusText}`);
             const ab = await res.text();
-            const data = fromBase64(ab);
+            const imageData = fromBase64(ab);
 
-            const imageUrl = await decryptFile(gallery_id, data, "image/png");
+            const imageUrl = await decryptFile(gallery_id, imageData, data.file_type);
 
             console.log("ImageUrl", imageUrl)
+            return { id: data.file_blob, imageUrl }
         } catch (error) {
             console.error(error);
         }
+    }
 
+    async function decryptBatch(gallery_id: string, data: DataValue[]) {
+        const results = await Promise.allSettled(
+            data.map((thumb) => limit(() => decrypt(gallery_id, thumb)))
+        );
+
+        return results.filter(r => r.status === "fulfilled").map(r => r.value);
     }
 
     return {
@@ -126,6 +140,7 @@ export function useEncryption() {
         sessionKey,
 
         decrypt,
+        decryptBatch,
         error,
     };
 }
