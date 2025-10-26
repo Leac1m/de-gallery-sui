@@ -10,7 +10,7 @@ type WalrusService = {
 const GraphQL_ENDPOINT = "https://graphql.testnet.sui.io/graphql";
 const SELECTED_SERVICE = process.env.SELECTED_SERVICE || "service1";
 
-const PACKAGE_ID = process.env.PACKAGE_ID || "0x17573fd845dfc8985e75b05f4ae667ec764b03b2bce506ec50494f23600be03b" ;
+const PACKAGE_ID = process.env.PACKAGE_ID || "0x3278cf2de0372765da7a52bc740919b637a4a7b38a818ee3d03052eef134139e" ;
 if (!PACKAGE_ID) {
     throw new Error('PACKAGE_ID environment variable is not set');
 }

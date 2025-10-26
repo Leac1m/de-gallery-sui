@@ -2,6 +2,7 @@ import AppConfig from "@/config";
 import { SuiClient } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
 import { DynamicFieldNode, DynamicFieldsResponse, DynamicFieldsVariables, ParsedJson } from "./types";
+import { fromHex } from "@mysten/sui/utils";
 
 // Function to fetch struct Gallery
 export async function getGallery(suiClient: SuiClient, address: string) {
@@ -153,4 +154,18 @@ export function parseFieldValue<T = ParsedJson>(node: DynamicFieldNode): {
     type: node.value.type?.repr || node.value.contents?.type.repr || 'unknown',
     value: parsedValue as T,
   };
+}
+
+export function seal_approve(gallery: string, suiClient: SuiClient) {
+  const tx = new Transaction();
+
+  tx.moveCall({
+    target: `${AppConfig.PACKAGE_ID}::degallery::seal_approve`,
+    arguments: [
+      tx.pure.vector("u8", fromHex(gallery)),
+      tx.object(gallery),
+    ]
+  });
+
+  return tx.build({ client: suiClient, onlyTransactionKind: true })
 }

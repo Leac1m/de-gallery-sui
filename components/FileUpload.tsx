@@ -1,5 +1,5 @@
-import { useFileUpload } from '@/hooks/useFileUpload';
-import config from '@/config';
+import { useGalleryClientContext } from "@/context/GalleryClientContext";
+
 export default function FileUpload() {
     const {
         file,
@@ -9,10 +9,7 @@ export default function FileUpload() {
         error,
         handleFileChange,
         uploadFile,
-    } = useFileUpload("/api/upload", {
-        keyServerIds: config.KEY_SERVER_IDS,
-        packageId: config.PACKAGE_ID,
-    });
+    } = (useGalleryClientContext()).fileUpload;
 
     return (
         <div>

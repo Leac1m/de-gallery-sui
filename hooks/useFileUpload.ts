@@ -1,19 +1,17 @@
 import React, { useState } from "react";
-import { useEncryption } from "./useEncryption";
-import { toHex } from "@mysten/sui/utils";
-import { useGalleryClient } from "./useGalleryClient";
+import { fromHex, toHex } from "@mysten/sui/utils";
 import { StorageInfo } from "@/app/api/upload/route";
+import { useGalleryClient } from "./useGalleryClient";
+import { useEncryption } from "./useEncryption";
 
-export function useFileUpload(uploadUrl: string, encryptionConfig: { keyServerIds: string[], packageId: string }) {
+export function useFileUpload(gallery: ReturnType<typeof useGalleryClient>, encryption: ReturnType<typeof useEncryption>) {
     const [file, setFile] = useState<File | null>(null);
     const [thumbnail, setThumbnail] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState<number>(0);
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [fileType, setFileType] = useState<string | undefined>(undefined);
-    const galleryClient = useGalleryClient();
 
-    const { encryptFile, error: encryptionError } = useEncryption(encryptionConfig.keyServerIds, encryptionConfig.packageId);
 
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     const ALLOWED_FILE_SIZE_TYPES = ["image/jpeg", "image/png", "image/gif"];
@@ -103,23 +101,24 @@ export function useFileUpload(uploadUrl: string, encryptionConfig: { keyServerId
 
 
         try {
+            if (!gallery?.gallery) throw new Error("Gallery need to upload file");
             // Encrypt the original file
-            const encryptedImage = await encryptFile(file, toHex(crypto.getRandomValues(new Uint8Array(9))), 2);
+            const encryptedImage = await encryption.encryptFile(file, gallery.gallery);
 
             if (!encryptedImage) {
-                throw new Error(encryptionError || "Failed to encrypt the original file");
+                throw new Error(encryption.error || "Failed to encrypt the original file");
             }
 
             // Encrypt the thumbnail
             const thumbnailBlob = await (await fetch(thumbnail)).blob();
             const thumbnailFile = new File([thumbnailBlob], "thumbnail.jpg", { type: thumbnailBlob.type || "image/jpeg" });
-            const encryptedThumbnail = await encryptFile(thumbnailFile, toHex(crypto.getRandomValues(new Uint8Array(9))), 2);
+            const encryptedThumbnail = await encryption.encryptFile(thumbnailFile, gallery.gallery);
 
             if (!encryptedThumbnail) {
-                throw new Error(encryptionError || "Failed to encrypt the thumbnail");
+                throw new Error(encryption.error || "Failed to encrypt the thumbnail");
             }
 
-            const response = await fetch(uploadUrl, {
+            const response = await fetch("/api/upload", {
                 method: 'POST',
                 body: JSON.stringify({ image: encryptedImage.encryptedObject, thumbnail: encryptedThumbnail.encryptedObject})
             });
@@ -136,7 +135,7 @@ export function useFileUpload(uploadUrl: string, encryptionConfig: { keyServerId
 
             if (!stroageInfo || stroageInfo.length === 0) throw new Error("Endpoint did not return storageInfo");
 
-            await galleryClient.addImage({
+            await gallery.addImage({
                 blob: stroageInfo[0].blobId,
                 end_epoch: parseInt(stroageInfo[0].endEpoch),
                 thumbnail: stroageInfo[1].blobId,
@@ -153,6 +152,16 @@ export function useFileUpload(uploadUrl: string, encryptionConfig: { keyServerId
 
     };
 
+    // Download
+    async function downloadEncrypted(url: string) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`download failed: ${res.status} ${res.statusText}`);
+
+        const ab = await res.arrayBuffer();
+
+        return new Uint8Array(ab);
+    }
+
     return {
         file,
         thumbnail,
@@ -161,6 +170,8 @@ export function useFileUpload(uploadUrl: string, encryptionConfig: { keyServerId
         error,
         handleFileChange,
         uploadFile,
+
+        downloadEncrypted
     };
 
 }

@@ -9,7 +9,6 @@ use degallery::data::create;
 
 public struct Gallery has key, store {
     id: UID,
-    owner: address,
 }
 
 // ==== Events ====
@@ -25,7 +24,6 @@ public struct DataAdded has drop, copy {
 public fun new(ctx: &mut TxContext): Gallery {
     let gallery = Gallery {
         id: object::new(ctx),
-        owner: ctx.sender()
     };
 
     event::emit(
@@ -66,7 +64,7 @@ public fun add(
 
 }
 // == create
-public fun seal_approve(gallery: &Gallery, ctx: &mut TxContext): bool {
-    assert!(gallery.owner == ctx.sender(), 0);
+public fun seal_approve(id: vector<u8>, gallery: &Gallery): bool {
+    assert!(object::id(gallery).to_bytes() == id, 0);
     true
 }
