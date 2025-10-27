@@ -1,0 +1,40 @@
+{
+  "placeholderImages": [
+    {
+      "id": "sui_1",
+      "description": "Abstract network of nodes",
+      "imageUrl": "https://images.unsplash.com/photo-1738082956213-aa554ba67bda?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxhYnN0cmFjdCUyMG5ldHdvcmt8ZW58MHx8fHwxNzYxNDIwMzcwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract network"
+    },
+    {
+      "id": "sui_2",
+      "description": "Glowing data streams",
+      "imageUrl": "https://images.unsplash.com/photo-1644325349124-d1756b79dd42?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkYXRhJTIwc3RyZWFtfGVufDB8fHx8MTc2MTQ2NTc3NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "data stream"
+    },
+    {
+      "id": "sui_3",
+      "description": "Futuristic city skyline",
+      "imageUrl": "https://images.unsplash.com/photo-1553675559-5046b59a5ca5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxmdXR1cmlzdGljJTIwY2l0eXxlbnwwfHx8fDE3NjE0NDA4OTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "futuristic city"
+    },
+    {
+      "id": "sui_4",
+      "description": "Geometric patterns with neon lights",
+      "imageUrl": "https://images.unsplash.com/photo-1640909544250-da29eeb585e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxuZW9uJTIwcGF0dGVybnxlbnwwfHx8fDE3NjE1MTM1NDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "neon pattern"
+    },
+    {
+      "id": "sui_5",
+      "description": "Digital landscape with glowing grid",
+      "imageUrl": "https://images.unsplash.com/photo-1728995025396-b5141e209455?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxkaWdpdGFsJTIwbGFuZHNjYXBlfGVufDB8fHx8MTc2MTQ4NTgyNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "digital landscape"
+    },
+    {
+      "id": "sui_6",
+      "description": "Cybernetic interface",
+      "imageUrl": "https://images.unsplash.com/photo-1760931969401-9bd6ee902798?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjeWJlcm5ldGljJTIwaW50ZXJmYWNlfGVufDB8fHx8MTc2MTUxMzU0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cybernetic interface"
+    }
+  ]
+}

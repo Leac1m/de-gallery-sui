@@ -1,4 +1,10 @@
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 import AppConfig, { getPublisherUrl } from "@/config";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
 
 export const storeBlob = async (encryptedData: string) => {
     const url = getPublisherUrl(`/v1/blobs?epochs=${AppConfig.NUM_EPOCH}`);
