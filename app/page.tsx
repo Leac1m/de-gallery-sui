@@ -21,11 +21,12 @@ import {
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UploadCloud } from 'lucide-react';
-import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useCurrentAccount, useDisconnectWallet } from '@mysten/dapp-kit';
 
 export default function Home() {
   // const [isConnected, setIsConnected] = useState(false);
   const currentAccount = useCurrentAccount();
+  const { mutate: disconnect } = useDisconnectWallet();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
@@ -59,6 +60,7 @@ export default function Home() {
   };
 
   const handleDisconnect = () => {
+    disconnect();
     setPhotos([]);
   };
 
