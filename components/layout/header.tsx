@@ -1,24 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ConnectButton } from "@mysten/dapp-kit";
 import { Wallet, Unplug, UploadCloud } from "lucide-react";
 
 interface AppHeaderProps {
   isConnected: boolean;
-  onConnect: () => void;
   onDisconnect: () => void;
   onUploadClick: () => void;
 }
 
 export function AppHeader({
   isConnected,
-  onConnect,
   onDisconnect,
   onUploadClick,
 }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center mx-auto">
+      <div className="container flex h-14 items-center mx-auto px-4">
         <div className="mr-4 flex items-center">
           <a href="#" className="flex items-center gap-2">
             <span className="font-headline text-xl font-bold text-foreground">
@@ -44,12 +43,7 @@ export function AppHeader({
               </Button>
             </div>
           ) : (
-            <Button
-              onClick={onConnect}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
-            >
-              <Wallet className="mr-2 h-4 w-4" /> Connect Wallet
-            </Button>
+            <ConnectButton />
           )}
         </div>
       </div>

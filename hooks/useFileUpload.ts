@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { fromHex, toHex } from "@mysten/sui/utils";
 import { StorageInfo } from "@/app/api/upload/route";
 import { useGalleryClient } from "./useGalleryClient";
 import { useEncryption } from "./useEncryption";
@@ -90,27 +89,33 @@ export function useFileUpload(gallery: ReturnType<typeof useGalleryClient>, encr
         reader.readAsDataURL(imageFile);
     }
 
-    const uploadFile = async () => {
-        if (!file || !thumbnail) {
+    const uploadFile = async (selectedFile?: File | null, selectedThumbnail?: string | null) => {
+        const fileToUse = selectedFile ?? file;
+        const thumbnailToUse = selectedThumbnail ?? thumbnail;
+
+        if (!fileToUse || !thumbnailToUse) {
             setError("No file selected");
             return;
         }
 
+        // keep a local copy of provided file type if available
+        if (selectedFile) setFileType(selectedFile.type);
+
         setIsUploading(true);
         setError(null);
 
-
         try {
             if (!gallery?.gallery) throw new Error("Gallery need to upload file");
+
             // Encrypt the original file
-            const encryptedImage = await encryption.encryptFile(file, gallery.gallery);
+            const encryptedImage = await encryption.encryptFile(fileToUse, gallery.gallery);
 
             if (!encryptedImage) {
                 throw new Error(encryption.error || "Failed to encrypt the original file");
             }
 
             // Encrypt the thumbnail
-            const thumbnailBlob = await (await fetch(thumbnail)).blob();
+            const thumbnailBlob = await (await fetch(thumbnailToUse)).blob();
             const thumbnailFile = new File([thumbnailBlob], "thumbnail.jpg", { type: thumbnailBlob.type || "image/jpeg" });
             const encryptedThumbnail = await encryption.encryptFile(thumbnailFile, gallery.gallery);
 
@@ -120,7 +125,7 @@ export function useFileUpload(gallery: ReturnType<typeof useGalleryClient>, encr
 
             const response = await fetch("/api/upload", {
                 method: 'POST',
-                body: JSON.stringify({ image: encryptedImage.encryptedObject, thumbnail: encryptedThumbnail.encryptedObject})
+                body: JSON.stringify({ image: encryptedImage.encryptedObject, thumbnail: encryptedThumbnail.encryptedObject })
             });
 
             if (response.status !== 200) {
@@ -139,13 +144,14 @@ export function useFileUpload(gallery: ReturnType<typeof useGalleryClient>, encr
                 blob: stroageInfo[0].blobId,
                 end_epoch: parseInt(stroageInfo[0].endEpoch),
                 thumbnail: stroageInfo[1].blobId,
-                type: fileType!,
+                type: fileType ?? selectedFile?.type ?? "image/jpeg",
             });
-            
+
             setUploadProgress(100);
         } catch (err) {
             console.error(err)
             setError((err as Error).message);
+            throw err;
         } finally {
             setIsUploading(false);
         }
