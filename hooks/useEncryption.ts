@@ -6,6 +6,7 @@ import { fromBase64, toBase64 } from "@mysten/sui/utils";
 import { useEffect, useState } from "react";
 import pLimit from "p-limit";
 import { DataValue } from "@/lib/types";
+import { SuiClient } from "@mysten/sui/client";
 
 
 export function useEncryption() {
@@ -43,6 +44,16 @@ export function useEncryption() {
     async function decryptInit(gallery: string) {
         try {
             if (!currentAccount?.address) throw new Error("Connect your wallet");
+            // Try to load a previously saved full session key first (preferred)
+            try {
+                const loaded = await loadSessionKey(suiClient);
+                if (loaded) {
+                    setSessionKey(loaded);
+                    return;
+                }
+            } catch (e) {
+                // ignore and continue to create a new session key
+            }
 
             const sessionKey = await SessionKey.create({
                 address: currentAccount?.address,
@@ -52,10 +63,23 @@ export function useEncryption() {
             });
 
             const message = sessionKey.getPersonalMessage();
+
+            // Ask the user to sign the session message and then persist the full session key
             const { signature } = await signPersonalMessage({ message });
             sessionKey.setPersonalMessageSignature(signature);
 
             setSessionKey(sessionKey);
+
+            // persist full session key for reuse across refreshes
+            try {
+                // compute expiry based on ttlMin (10 minutes) minus a small buffer
+                const ttlMs = 10 * 60 * 1000; // matches ttlMin:10
+                const buffer = 30 * 1000; // 30s buffer
+                const expiryTs = Date.now() + ttlMs - buffer;
+                await saveSessionKey(sessionKey, expiryTs);
+            } catch (e) {
+                /* ignore */
+            }
         } catch (err) {
             console.error(err);
             setError("Failed to initialize Decrypt Client");
@@ -143,4 +167,32 @@ export function useEncryption() {
         decryptBatch,
         error,
     };
+}
+
+export async function saveSessionKey(sessionKey: SessionKey, expiryTs: number) {
+    const exported = sessionKey.export();
+    const payload = { exported, expiry: expiryTs };
+    localStorage.setItem('sui-session-key', JSON.stringify(payload));
+}
+
+
+export async function loadSessionKey(suiClient: SuiClient): Promise<SessionKey | null> {
+    const raw = localStorage.getItem('sui-session-key');
+    if (!raw) return null;
+
+    try {
+        const data = JSON.parse(raw) as { exported: any; expiry?: number };
+
+        if (data.expiry && data.expiry < Date.now()) {
+            console.warn('SessionKey expired');
+            localStorage.removeItem('sui-session-key');
+            return null;
+        }
+
+        const sessionKey = SessionKey.import(data.exported, suiClient);
+        return sessionKey;
+    } catch (err) {
+        console.error('Failed to import session key:', err);
+        return null;
+    }
 }

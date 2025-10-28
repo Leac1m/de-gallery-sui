@@ -2,7 +2,7 @@ import { addToGallery, fetchDynamicFields, getGallery, newGallery } from "@/lib/
 import { DataValue } from "@/lib/types";
 import { useCurrentAccount, useSignTransaction, useSuiClient } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 
 export function useGalleryClient() {
@@ -14,6 +14,7 @@ export function useGalleryClient() {
     const [images, setImages] = useState<DataValue[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     // check if user has gallery else get one
+
     async function init() {
         try {
             setError(null);
@@ -38,8 +39,6 @@ export function useGalleryClient() {
             setError((e as Error).message)
         }
     };
-
-
 
     async function fetchThumbnails() {
         try {
