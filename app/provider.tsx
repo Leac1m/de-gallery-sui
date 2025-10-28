@@ -24,6 +24,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
         <WalletProvider
+          autoConnect
+          storageKey=""
+          slushWallet={{
+            name: 'De-Gallery',
+          }}
           theme={[
             { selector: 'html:not(.dark)', variables: lightTheme },
             { selector: 'html.dark', variables: darkTheme },

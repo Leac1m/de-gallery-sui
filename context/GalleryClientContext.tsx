@@ -2,6 +2,7 @@ import { useEncryption } from '@/hooks/useEncryption';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useGalleryClient } from '@/hooks/useGalleryClient';
 import { useCurrentAccount } from '@mysten/dapp-kit';
+import AppConfig from '@/config';
 import { createContext, useContext, useEffect, useState } from 'react';
 
 const GalleryClientContext = createContext<{
@@ -26,6 +27,11 @@ export const GalleryClientProvider: React.FC<{ children: React.ReactNode }> = ({
         // gallery.init() expects a connected wallet; avoid calling it when not connected
         if (!currentAccount?.address) return;
 
+        try {
+            localStorage.setItem('de-gallery:address', currentAccount.address);
+        } catch (e) {
+            /* ignore */
+        }
         await gallery.init();
         if (!gallery.gallery) return;
 
@@ -37,6 +43,22 @@ export const GalleryClientProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(err);
     }
   }, [currentAccount?.address, gallery.gallery]);
+
+  // cleanup/persist when account disconnects
+  useEffect(() => {
+    if (!currentAccount?.address) {
+      try {
+        // remove stored address and any related session signature keys for that address
+        const prevAddress = localStorage.getItem('de-gallery:address');
+        localStorage.removeItem('de-gallery:address');
+        if (prevAddress) {
+          localStorage.removeItem('sui-session-key');
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    }
+  }, [currentAccount?.address]);
 
   return (
     <GalleryClientContext.Provider value={{ gallery, encryption, fileUpload }}>
