@@ -21,7 +21,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UploadCloud } from 'lucide-react';
-import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useCurrentAccount, useDisconnectWallet } from '@mysten/dapp-kit';
 
 export default function Home() {
   // const [isConnected, setIsConnected] = useState(false);
@@ -37,6 +37,7 @@ export default function Home() {
     gallery: galleryClient,
     encryption,
   } = galleryClientContext;
+  const { mutate: disconnect } = useDisconnectWallet();
 
   const isConnected = !!currentAccount?.address;
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -59,6 +60,7 @@ export default function Home() {
   };
 
   const handleDisconnect = () => {
+    disconnect();
     setPhotos([]);
   };
 
