@@ -88,7 +88,7 @@ export function PhotoUploader({ onUpload, isUploading }: PhotoUploaderProps) {
   if (selectedFile && thumbnail) {
     return (
       <div className="relative flex flex-col md:flex-row items-center justify-center text-center p-4 gap-6">
-        <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border-2 border-primary/50 shadow-lg flex-shrink-0">
+        <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden border-2 border-primary/50 shadow-lg shrink-0">
           <Image src={thumbnail} alt="Thumbnail preview" layout="fill" objectFit="cover" />
         </div>
         <div className="text-sm text-foreground text-center md:text-left">
