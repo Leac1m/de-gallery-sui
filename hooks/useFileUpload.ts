@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { StorageInfo } from "@/app/api/upload/route";
 import { useGalleryClient } from "./useGalleryClient";
 import { useEncryption } from "./useEncryption";
+import { MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES, formatBytes } from "@/constants/upload";
 
 export function useFileUpload(gallery: ReturnType<typeof useGalleryClient>, encryption: ReturnType<typeof useEncryption>) {
     const [file, setFile] = useState<File | null>(null);
@@ -12,23 +13,21 @@ export function useFileUpload(gallery: ReturnType<typeof useGalleryClient>, encr
     const [fileType, setFileType] = useState<string | undefined>(undefined);
 
 
-    const MAX_FILE_SIZE = 5 * 1024 * 1024;
-    const ALLOWED_FILE_SIZE_TYPES = ["image/jpeg", "image/png", "image/gif"];
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = event.target.files?.[0] || null;
 
         if (selectedFile) {
             // check file type
-            if (!ALLOWED_FILE_SIZE_TYPES.includes(selectedFile.type)) {
-                setError("Only JPEG, PNG and GIF files are allowed.");
+            if (!ALLOWED_MIME_TYPES.includes(selectedFile.type)) {
+                setError(`Only ${ALLOWED_MIME_TYPES.join(', ')} files are allowed.`);
                 setFile(null);
                 return;
             }
 
             // check file size
-            if (selectedFile.size > MAX_FILE_SIZE) {
-                setError("File size exceeds the 5MB limit");
+            if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+                setError(`File size exceeds the ${formatBytes(MAX_FILE_SIZE_BYTES)} limit`);
                 setFile(null);
                 return;
             }

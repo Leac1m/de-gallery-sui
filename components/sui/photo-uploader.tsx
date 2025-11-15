@@ -5,6 +5,7 @@ import { UploadCloud, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { MAX_FILE_SIZE_BYTES, ALLOWED_MIME_TYPES, formatBytes } from "@/constants/upload";
 import { useToast } from "@/hooks/use-toast";
 
 interface PhotoUploaderProps {
@@ -21,28 +22,29 @@ export function PhotoUploader({ onUpload, isUploading }: PhotoUploaderProps) {
   const { toast } = useToast();
 
   const handleFileChange = (file: File | null) => {
-    if (file && file.type.startsWith("image/")) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
-         toast({
-          title: "File Too Large",
-          description: "Please select an image file smaller than 10MB.",
-          variant: "destructive"
-        });
-        return;
-      }
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setThumbnail(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else if (file) {
+    if (!file) return;
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
       toast({
         title: "Invalid File Type",
-        description: "Please select an image file (PNG, JPG, etc.).",
+        description: `Allowed: ${ALLOWED_MIME_TYPES.join(', ')}`,
         variant: "destructive"
       });
+      return;
     }
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      toast({
+        title: "File Too Large",
+        description: `Max size is ${formatBytes(MAX_FILE_SIZE_BYTES)}.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setThumbnail(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const onDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -131,7 +133,7 @@ export function PhotoUploader({ onUpload, isUploading }: PhotoUploaderProps) {
         <UploadCloud className="w-10 h-10 text-accent drop-shadow-glow-accent" />
         <p className="font-headline text-lg text-foreground mt-2">Drag & drop an image here</p>
         <p>or <span className="font-semibold text-primary cursor-pointer">click to browse</span></p>
-        <p className="text-xs mt-2">PNG, JPG, GIF up to 10MB</p>
+        <p className="text-xs mt-2">PNG, JPG, GIF up to {formatBytes(MAX_FILE_SIZE_BYTES)}</p>
       </div>
     </div>
   );
